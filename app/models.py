@@ -7,6 +7,8 @@ from datetime import datetime
 class GameBase(BaseModel):
     name: str
     url: HttpUrl
+    description: str
+    image_url : Optional[HttpUrl] = None
     
 class GameCreate(GameBase):
     is_playable: bool = False
@@ -21,6 +23,8 @@ class Game(GameBase):
 class GameUpdate(BaseModel):
     name: Optional[str] = None
     url: Optional[HttpUrl] = None
+    description: Optional[str] = None
+    image_url: Optional[HttpUrl] = None
     is_playable: Optional[bool] = None
     
 class GameList(BaseModel):
