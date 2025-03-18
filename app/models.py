@@ -9,6 +9,7 @@ class GameBase(BaseModel):
     url: HttpUrl
     description: str
     image_url : Optional[HttpUrl] = None
+    category: str
     
 class GameCreate(GameBase):
     is_playable: bool = False
@@ -26,6 +27,7 @@ class GameUpdate(BaseModel):
     description: Optional[str] = None
     image_url: Optional[HttpUrl] = None
     is_playable: Optional[bool] = None
+    category: Optional[str] = None
     
 class GameList(BaseModel):
     games: List[Game]

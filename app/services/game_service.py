@@ -19,8 +19,8 @@ class GameService:
                 url=game_data.get('url'),
                 description=game_data.get('description', ''),
                 image_url=game_data.get('image_url'),
-                category=game_data.get('category', ''),
-                is_playable=game_data.get('is_playable', False)  # Changed to is_playable
+                category=game_data.get('category', 'Uncategorized'),  # Default category if none exists
+                is_playable=game_data.get('is_playable', False)
             )
             games.append(game)
             
@@ -29,7 +29,7 @@ class GameService:
     @staticmethod
     async def get_playable_games() -> List[Game]:
         """Get only playable games from Firebase"""
-        games_ref = games_collection.where('is_playable', '==', True).stream()  # Changed to is_playable
+        games_ref = games_collection.where('is_playable', '==', True).stream()
         games = []
         
         for game_doc in games_ref:
@@ -40,8 +40,8 @@ class GameService:
                 url=game_data.get('url'),
                 description=game_data.get('description', ''),
                 image_url=game_data.get('image_url'),
-                category=game_data.get('category', ''),
-                is_playable=game_data.get('is_playable', True)  # Changed to is_playable
+                category=game_data.get('category', 'Uncategorized'),  # Default category if none exists
+                is_playable=game_data.get('is_playable', True)
             )
             games.append(game)
             
@@ -62,33 +62,28 @@ class GameService:
             url=game_data.get('url'),
             description=game_data.get('description', ''),
             image_url=game_data.get('image_url'),
-            category=game_data.get('category', ''),
-            is_playable=game_data.get('is_playable', False)  # Changed to is_playable
+            category=game_data.get('category', 'Uncategorized'),  # Default category if none exists
+            is_playable=game_data.get('is_playable', False)
         )
     
     @staticmethod
     async def create_game(game: GameCreate) -> Game:
         """Create a new game in Firebase"""
-        # Convert from model
         game_dict = game.dict()
-        
-        # Rename is_active to is_playable if needed
-        if 'is_active' in game_dict and 'is_playable' not in game_dict:
-            game_dict['is_playable'] = game_dict.pop('is_active')
-            
         new_game_ref = games_collection.document()
         new_game_ref.set(game_dict)
         
-        # Get the created game
+        # Get the created game data
         created_game = new_game_ref.get().to_dict()
+        
         return Game(
             id=new_game_ref.id,
             name=created_game.get('name'),
             url=created_game.get('url'),
             description=created_game.get('description', ''),
             image_url=created_game.get('image_url'),
-            category=created_game.get('category', ''),
-            is_playable=created_game.get('is_playable', False)  # Changed to is_playable
+            category=created_game.get('category', 'Uncategorized'),  # Default category if none exists
+            is_playable=created_game.get('is_playable', False)
         )
     
     @staticmethod
@@ -100,12 +95,7 @@ class GameService:
         if not game_doc.exists:
             return None
             
-        # Convert from model
         update_data = {k: v for k, v in game_update.dict().items() if v is not None}
-        
-        # Rename is_active to is_playable if needed
-        if 'is_active' in update_data and 'is_playable' not in update_data:
-            update_data['is_playable'] = update_data.pop('is_active')
         
         if update_data:
             game_ref.update(update_data)
@@ -118,8 +108,8 @@ class GameService:
             url=updated_game.get('url'),
             description=updated_game.get('description', ''),
             image_url=updated_game.get('image_url'),
-            category=updated_game.get('category', ''),
-            is_playable=updated_game.get('is_playable', False)  # Changed to is_playable
+            category=updated_game.get('category', 'Uncategorized'),  # Default category if none exists
+            is_playable=updated_game.get('is_playable', False)
         )
     
     @staticmethod
@@ -144,10 +134,10 @@ class GameService:
             return None
             
         game_data = game_doc.to_dict()
-        current_status = game_data.get('is_playable', False)  # Changed to is_playable
+        current_status = game_data.get('is_playable', False)
         
         # Toggle the status
-        game_ref.update({'is_playable': not current_status})  # Changed to is_playable
+        game_ref.update({'is_playable': not current_status})
         
         # Get the updated game
         updated_game = game_ref.get().to_dict()
@@ -157,6 +147,27 @@ class GameService:
             url=updated_game.get('url'),
             description=updated_game.get('description', ''),
             image_url=updated_game.get('image_url'),
-            category=updated_game.get('category', ''),
-            is_playable=updated_game.get('is_playable', False)  # Changed to is_playable
+            category=updated_game.get('category', 'Uncategorized'),  # Default category if none exists
+            is_playable=updated_game.get('is_playable', not current_status)
         )
+        
+    @staticmethod
+    async def get_games_by_category(category: str) -> List[Game]:
+        """Get games filtered by category"""
+        games_ref = games_collection.where('category', '==', category).stream()
+        games = []
+        
+        for game_doc in games_ref:
+            game_data = game_doc.to_dict()
+            game = Game(
+                id=game_doc.id,
+                name=game_data.get('name'),
+                url=game_data.get('url'),
+                description=game_data.get('description', ''),
+                image_url=game_data.get('image_url'),
+                category=game_data.get('category', category),  # Use the provided category
+                is_playable=game_data.get('is_playable', False)
+            )
+            games.append(game)
+            
+        return games
